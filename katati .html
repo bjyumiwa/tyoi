@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>形クイズの図形描画アプリ</title>
+    <link rel="icon" href="favicon.ico" type="image/x-icon"> <!-- faviconをここに追加 -->
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@700&family=Quicksand:wght@700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Baloo 2', 'Quicksand', cursive;
+            background-color: #ccffcc; /* 薄い緑色 */
+            background-image: 
+                linear-gradient(rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.9)),
+                url('kodomo2.png');
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center 10%;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+        }
+        canvas {
+            border: 2px solid #ff69b4;
+            background-color: #ffffff;
+            margin-top: 20px;
+        }
+        #title {
+            font-size: 36px;
+            color: #c411db;
+            font-weight: bold;
+            margin: 20px;
+        }
+        #instructions {
+            font-size: 20px;
+            color: #f51a1a;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+        #controls {
+            margin-top: 10px;
+            font-size: 18px;
+        }
+        input[type="text"] {
+            font-family: 'Baloo 2', cursive;
+            font-size: 18px;
+            padding: 5px;
+            margin-right: 10px;
+        }
+        button {
+            font-family: 'Baloo 2', cursive;
+            font-size: 18px;
+            padding: 10px 10px;
+            background-color: #ee1e1e;
+            color: rgb(241, 175, 236);
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        button:hover {
+            background-color: #ff1493;
+        }
+        #gallery {
+            margin-top: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .thumbnail {
+            width: 100px;
+            margin: 5px;
+            border: 2px solid #ff69b4;
+        }
+    </style>
+</head>
+<body>
+    <div id="title">ちょいたし！<ruby>形<rt>かたち</rt></ruby>ドリル</div>
+    <div id="instructions">
+        <ruby>下<rt>した</rt></ruby>のキャンバスに<ruby>表示<rt>ひょうじ</rt></ruby>される<ruby>形に<rt>かたち</rt></ruby><ruby>何<rt>なに</rt></ruby>か<ruby>付<rt>つ</rt></ruby>け<ruby>加<rt>くわ</rt></ruby>えてね。例△⇒🍙<br>
+        <ruby>描<rt>か</rt></ruby>いたものをテキストボックスに<ruby>記入<rt>きにゅう</rt></ruby>し、「できた」ボタンを<ruby>押<rt>お</rt></ruby>してね。
+    </div>    
+    <canvas id="drawingCanvas" width="500" height="500"></canvas>
+    <div id="controls">
+        <ruby>何<rt>なに</rt></ruby>を<ruby>描<rt>か</rt></ruby>きましたか：<input type="text" id="description" placeholder="テキストボックス">
+        <button onclick="submitDrawing()">できた</button>
+    </div>
+    <div id="gallery"></div>
+    <script>
+        const canvas = document.getElementById('drawingCanvas');
+        const ctx = canvas.getContext('2d');
+        const shapes = [
+            function drawCircle() {
+                ctx.beginPath();
+                ctx.arc(250, 250, 100, 0, Math.PI * 2);
+                ctx.stroke();
+            },
+            function drawSmallSquare() {
+                ctx.beginPath();
+                ctx.rect(200, 200, 100, 100);
+                ctx.stroke();
+            },
+            function drawLongRectangle() {
+                ctx.beginPath();
+                ctx.rect(50, 50, 300, 50); // 細長い四角形の位置とサイズ
+                ctx.stroke();
+            },
+            function drawEllipse() {
+                ctx.beginPath();
+                ctx.ellipse(300, 300, 100, 50, 0, 0, 2 * Math.PI); // 楕円の中心座標、半径、角度
+                ctx.stroke();
+            },
+            function drawLargeSquare() {
+                ctx.beginPath();
+                ctx.rect(150, 150, 200, 200);
+                ctx.stroke();
+            },
+            function drawTriangle() {
+                ctx.beginPath();
+                ctx.moveTo(250, 150);
+                ctx.lineTo(350, 350);
+                ctx.lineTo(150, 350);
+                ctx.closePath();
+                ctx.stroke();
+            },
+            function drawArrow() {
+                ctx.beginPath();
+                ctx.moveTo(150, 250);
+                ctx.lineTo(350, 250);
+                ctx.lineTo(320, 220);
+                ctx.moveTo(350, 250);
+                ctx.lineTo(320, 280);
+                ctx.stroke();
+            }
+        ];
+        let lastShapeIndex = -1; // 最後に選んだ形のインデックスを記録する変数
+
+        function randomShape() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            let randomIndex;
+            do {
+                randomIndex = Math.floor(Math.random() * shapes.length);
+            } while (randomIndex === lastShapeIndex);
+            shapes[randomIndex]();
+            lastShapeIndex = randomIndex; // 最後に描いた形のインデックスを更新
+        }
+
+        let drawing = false;
+
+        canvas.addEventListener('mousedown', (e) => {
+            drawing = true;
+            ctx.beginPath();
+            ctx.moveTo(e.offsetX, e.offsetY);
+        });
+
+        canvas.addEventListener('mousemove', (e) => {
+            if (drawing) {
+                ctx.lineTo(e.offsetX, e.offsetY);
+                ctx.stroke();
+            }
+        });
+
+        canvas.addEventListener('mouseup', () => {
+            drawing = false;
+        });
+
+        canvas.addEventListener('mouseout', () => {
+            drawing = false;
+        });
+
+        function saveDrawing(description) {
+            const img = canvas.toDataURL("image/png");
+            const imgElement = document.createElement("img");
+            imgElement.src = img;
+            imgElement.className = "thumbnail";
+            document.getElementById('gallery').appendChild(imgElement);
+        }
+
+        function drawNiceImage() {
+            var image = new Image();
+            image.onload = function() {
+                ctx.drawImage(image, (canvas.width - image.width) / 2, (canvas.height - image.height) / 2);
+            };
+            image.src = 'iine.png';
+        }
+
+        function submitDrawing() {
+            const description = document.getElementById('description').value;
+            if (description.trim() !== '') {
+                saveDrawing(description);
+                drawNiceImage();
+                setTimeout(randomShape, 1500); // 1.5秒後に新しい形を描画
+            } else {
+                alert('何を描いたかを記入してください');
+            }
+        }
+
+        // Initialize
+        randomShape();
+    </script>
+</body>
+</html>
