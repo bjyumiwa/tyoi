@@ -145,7 +145,47 @@
         }
 
         let drawing = false;
+        function getEventPosition(e) {
+        if (e.touches) e = e.touches[0]; // タッチイベントの座標を取得
+        return { x: e.offsetX, y: e.offsetY };
+    }
 
+    function startDrawing(e) {
+        const { x, y } = getEventPosition(e);
+        drawing = true;
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+    }
+
+    function continueDrawing(e) {
+        if (!drawing) return;
+        const { x, y } = getEventPosition(e);
+        ctx.lineTo(x, y);
+        ctx.stroke();
+    }
+
+    function endDrawing() {
+        drawing = false;
+    }
+
+    // マウスイベント
+    canvas.addEventListener('mousedown', startDrawing);
+    canvas.addEventListener('mousemove', continueDrawing);
+    canvas.addEventListener('mouseup', endDrawing);
+    canvas.addEventListener('mouseout', endDrawing);
+
+    // タッチイベント
+    canvas.addEventListener('touchstart', startDrawing);
+    canvas.addEventListener('touchmove', continueDrawing);
+    canvas.addEventListener('touchend', endDrawing);
+
+    function saveDrawing(description) {
+        const img = canvas.toDataURL("image/png");
+        const imgElement = document.createElement("img");
+        imgElement.src = img;
+        imgElement.className = "thumbnail";
+        document.getElementById('gallery').appendChild(imgElement);
+    }
         canvas.addEventListener('mousedown', (e) => {
             drawing = true;
             ctx.beginPath();
@@ -197,5 +237,6 @@
         // Initialize
         randomShape();
     </script>
+    
 </body>
 </html>
